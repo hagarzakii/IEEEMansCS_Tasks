@@ -1,0 +1,188 @@
+## Entities or tables in the schema: user_profile, video, playlists, comments and likes
+
+### user_profile:
+
+attributes: gender, country, email, username, password, date_of_birth, user_id (PK) and profile_pic_url
+
+### videos:
+
+attributes: title, video_description, upload_date, duration, view_count and video_id(PK)
+
+### playlists:
+
+attributes: playlist_id(PK), playlist_name, playlist_description, videos_count
+
+### likes:
+
+attributes: like_id(PK), type
+
+### comments:
+
+attributes: comment_id(PK), comment_text
+
+## Relations:
+
+user may upload many videos , a video must be uploaded by 1 user
+
+user may recieve many likes, each like is associated with exactly one user
+
+user may write many comments, comments must be written by one user
+
+user may create many playlists, a playlist must be created by one user
+
+users may subscribe to many other users
+
+a playlist may contain many videos, video can be added to multiple playlists
+
+video may have many likes, many likes may be recived on one video
+
+a single video may receive many comments from many users., each comment is associated with exactly one video
+
+Tables before considering relationships:
+
+- - Users Table
+CREATE TABLE user_profile (
+user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    
+    gender TEXT NOT NULL CHECK gender IN (’Male’, ‘Female’),
+    
+    country TEXT NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    profile_picture_url TEXT,
+    date_of_birth NUMERIC NOT NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+- - Videos Table
+CREATE TABLE videos (
+video_id INTEGER PRIMARY KEY AUTOINCREMENT,
+title TEXT NOT NULL,
+video_description TEXT,
+duration INTEGER NOT NULL,
+view_count INTEGER DEFAULT 0,
+upload_date NUMERIC DEFAULT CURRENT_TIMESTAMP
+);
+- - Comments Table
+CREATE TABLE comments (
+comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+comment_text TEXT NOT NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+- - Likes Table
+CREATE TABLE likes (
+like_id INTEGER PRIMARY KEY AUTOINCREMENT,
+type TEXT NOT NULL CHECK type IN (’like’, ‘dislike’),
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+- - Playlists Table
+CREATE TABLE playlists (
+playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+playlist_name TEXT NOT NULL,
+playlist_description TEXT,
+    
+    videos_count INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+
+Tables after considering relationships:
+
+- - Users Table
+CREATE TABLE user_profile (
+user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    
+    gender TEXT NOT NULL CHECK gender IN (’Male’, ‘Female’),
+    
+    country TEXT NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    profile_picture_url TEXT,
+    date_of_birth TEXTNOT NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+- - Videos Table
+CREATE TABLE videos (
+video_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    
+    user_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    video_description TEXT,
+    duration INTEGER NOT NULL,
+    view_count INTEGER DEFAULT 0,
+    upload_date NUMERIC DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFRENCES user_profile(user_id) ON DELETE CASCADE
+    );
+    
+- - Comments Table
+CREATE TABLE comments (
+comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+comment_text TEXT NOT NULL,
+    
+    user_id INTEGER NOT NULL,
+    
+    video_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (video_id) REFRENCES videos(video_id) ON DELETE CASCADE,
+    
+    FOREIGN KEY (user_id) REFRENCES user_profile(user_id) ON DELETE CASCADE
+    );
+    
+- - Likes Table
+CREATE TABLE likes (
+like_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    
+    user_id INTEGER NOT NULL,
+    
+    video_id INTEGER NOT NULL,
+    type TEXT NOT NULL CHECK type IN (’like’, ‘dislike’),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (video_id) REFRENCES videos(video_id) ON DELETE CASCADE,
+    
+    FOREIGN KEY (user_id) REFRENCES user_profile(user_id) ON DELETE CASCADE
+    );
+    
+- - Playlists Table
+CREATE TABLE playlists (
+playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    
+    user_id INTEGER NOT NULL,
+    playlist_name TEXT NOT NULL,
+    playlist_description TEXT,
+    
+    videos_count INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFRENCES user_profile(user_id) ON DELETE CASCADE,
+    );
+    
+    CREATE TABLE playlist_videos(
+          playlist_id INTEGER NOT NULL,
+    
+    video_id INTEGER NOT NULL,
+    
+    PRIMARY KEY(playlist_id, video_id),
+    
+    FOREIGN KEY (video_id) REFRENCES videos(video_id) ON DELETE CASCADE,
+    
+    FOREIGN KEY (playlist_id) REFRENCES playlists(playlist_id) ON DELETE CASCADE
+    
+    );
+    
+    CREATE TABLE subscribe(
+    
+    subscribtion_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    
+    subscriber_id INTEGER NOT NULL,
+    
+    FOREIGN KEY (subscriber_id) REFRENCES user_profile(user_id) ON DELETE CASCADE
+    
+    );
