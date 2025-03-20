@@ -1,0 +1,66 @@
+Problem 1:
+
+SELECT
+CASE
+    WHEN A+B<=C OR A+C<=B OR B+C<=A THEN 'Not A Triangle'
+    WHEN A=B AND B=C THEN 'Equilateral'
+    WHEN A=B OR A=C OR B=C THEN 'Isosceles'
+    ELSE 'Scalene'
+END AS TYPE
+FROM TRIANGLES;
+
+Problem 2:
+
+SELECT product_id, product_name, description
+FROM products
+WHERE
+  description REGEXP 'SN[0-9]{4}-[0-9]{4}$'
+  OR description REGEXP 'SN[0-9]{4}-[0-9]{4}[^0-9]+'
+ORDER BY product_id;
+
+Problem 3:
+
+WITH FirstScores AS (
+    SELECT
+        student_id,
+        subject,
+        score AS first_score,
+        ROW_NUMBER() OVER (PARTITION BY student_id, subject ORDER BY exam_date) AS rn
+    FROM Scores
+),
+LatestScores AS (
+    SELECT
+        student_id,
+        subject,
+        score AS latest_score,
+        ROW_NUMBER() OVER (PARTITION BY student_id, subject ORDER BY exam_date DESC) AS rn
+    FROM Scores
+)
+SELECT
+    f.student_id,
+    f.subject,
+    f.first_score,
+    l.latest_score
+FROM FirstScores f
+JOIN LatestScores l
+    ON f.student_id = l.student_id
+    AND f.subject = l.subject
+    AND f.rn = 1
+    AND l.rn = 1
+WHERE f.first_score < l.latest_score
+ORDER BY f.student_id, f.subject;
+
+Problem 4:
+
+WITH total_users AS(
+    SELECT COUNT(*) total
+    FROM Users
+),
+registered_users AS(
+    SELECT contest_id, COUNT(user_id) full_count
+    FROM Register
+    GROUP BY contest_id
+)
+SELECT contest_id, ROUND(full_count/total*100 , 2) percentage
+FROM total_users, registered_users
+ORDER BY  ROUND(full_count/total*100, 2) DESC , contest_id ASC;
